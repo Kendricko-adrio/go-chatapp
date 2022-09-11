@@ -70,7 +70,12 @@ func main() {
 	router.HandleFunc("/", htmlHandler)
 	router.HandleFunc("/chat/{userId}", handler.GetUserChats).Methods(http.MethodGet)
 	router.HandleFunc("/user/{id}", userHandler.GetUserById).Methods(http.MethodGet)
-	log.Println("run on port 8080")
-	http.ListenAndServe(":8080", router)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port if not specified
+	}
+	log.Println("run on port " + port)
+	http.ListenAndServe(":"+port, router)
 
 }
