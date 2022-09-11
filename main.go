@@ -67,7 +67,7 @@ func main() {
 	userHandler := handler.GetUserHandlerWired()
 
 	router.HandleFunc("/ws", websocketHandler)
-	router.HandleFunc("/", htmlHandler)
+	// router.HandleFunc("/", htmlHandler)
 	router.HandleFunc("/chat/{userId}", handler.GetUserChats).Methods(http.MethodGet)
 	router.HandleFunc("/user/{id}", userHandler.GetUserById).Methods(http.MethodGet)
 
