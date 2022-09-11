@@ -29,7 +29,14 @@ func connect() *gorm.DB {
 			Colorful:                  false,         // Disable color
 		},
 	)
-	dsn := "host=127.0.0.1 user=postgres password=asdfasw22 dbname=chat port=5432 sslmode=disable TimeZone=Asia/Bangkok"
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+	sslMode := os.Getenv("DB_SSL_MODE")
+	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbName + " port=" + port + " sslmode=" + sslMode + " TimeZone=Asia/Bangkok"
+
 	db, err := gorm.Open(postgres.New(
 		postgres.Config{
 			DSN: dsn,

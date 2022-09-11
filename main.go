@@ -4,9 +4,11 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 	"github.com/kendricko-adrio/go-ws/db"
 	"github.com/kendricko-adrio/go-ws/entity"
 	"github.com/kendricko-adrio/go-ws/handler"
@@ -52,13 +54,21 @@ func htmlHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// handler.LoadDotEnvFile()
+	loadErr := godotenv.Load(".env")
+	if loadErr != nil {
+		log.Println("Something wrong with load .env file")
+		os.Exit(1)
+		return
+	}
 	router := mux.NewRouter()
-	db.MigrateDB()
+	// db.MigrateDB()
 	//wiring
 	userHandler := handler.GetUserHandlerWired()
 
 	router.HandleFunc("/ws", websocketHandler)
 	router.HandleFunc("/", htmlHandler)
+	router.HandleFunc("/chat/{userId}", handler.GetUserChats).Methods(http.MethodGet)
 	router.HandleFunc("/user/{id}", userHandler.GetUserById).Methods(http.MethodGet)
 	log.Println("run on port 8080")
 	http.ListenAndServe(":8080", router)

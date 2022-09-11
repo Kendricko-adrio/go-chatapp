@@ -10,6 +10,12 @@ import (
 	"github.com/kendricko-adrio/go-ws/service/group"
 )
 
+func GetAllChat(userId uint) []entity.GroupDetail {
+	repo := repository.NewChatRepository(db.GetDBInstance())
+
+	return repo.GetUserChats(userId)
+}
+
 func Receive(ws entity.WSConnect) {
 	for {
 		message := entity.Message{}
