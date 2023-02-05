@@ -16,6 +16,12 @@ func GetAllChat(userId uint) []entity.GroupDetail {
 	return repo.GetUserChats(userId)
 }
 
+func GetChatsByGroup(groupId uint) []entity.Chat {
+	repo := repository.NewChatRepository(db.GetDBInstance())
+
+	return repo.GetChatsByGroup(groupId)
+}
+
 func Receive(ws entity.WSConnect) {
 	for {
 		message := entity.Message{}

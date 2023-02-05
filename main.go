@@ -1,57 +1,47 @@
 package main
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
-	"github.com/kendricko-adrio/go-ws/db"
-	"github.com/kendricko-adrio/go-ws/entity"
 	"github.com/kendricko-adrio/go-ws/handler"
-	"github.com/kendricko-adrio/go-ws/repository"
-	"github.com/kendricko-adrio/go-ws/service/chatservice"
+	"github.com/kendricko-adrio/go-ws/service/group"
+	"github.com/rs/cors"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
+// var upgrader = websocket.Upgrader{
+// 	ReadBufferSize:  1024,
+// 	WriteBufferSize: 1024,
+// }
 
-func websocketHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		panic("error connection")
-	}
+// func websocketHandler(w http.ResponseWriter, r *http.Request) {
+// 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+// 	conn, err := upgrader.Upgrade(w, r, nil)
+// 	if err != nil {
+// 		log.Println(err)
+// 		panic("error connection")
+// 	}
 
-	username := r.URL.Query().Get("username")
+// 	username := r.URL.Query().Get("username")
 
-	to := r.URL.Query().Get("to")
+// 	to := r.URL.Query().Get("to")
 
-	log.Printf("Username: %s, to user : %s", username, to)
+// 	log.Printf("Username: %s, to user : %s", username, to)
 
-	userRepo := repository.NewRepo(db.GetDBInstance())
+// 	userRepo := repository.NewRepo(db.GetDBInstance())
 
-	user := userRepo.FindByUsername(username)
-	// user := entity.NewUser(username, conn, to)
-	wsConnection := entity.WSConnect{
-		User:       user,
-		Connection: conn,
-	}
-	entity.Connections[username] = wsConnection
-	go chatservice.Receive(wsConnection)
-}
-
-func htmlHandler(w http.ResponseWriter, r *http.Request) {
-	template, err := template.ParseFiles("html/index.html")
-	if err != nil {
-		panic(err)
-	}
-	template.Execute(w, nil)
-}
+// 	user := userRepo.FindByUsername(username)
+// 	// user := entity.NewUser(username, conn, to)
+// 	wsConnection := entity.WSConnect{
+// 		User:       user,
+// 		Connection: conn,
+// 	}
+// 	entity.Connections[username] = wsConnection
+// 	go chatservice.Receive(wsConnection)
+// }
 
 func main() {
 	// handler.LoadDotEnvFile()
@@ -66,16 +56,26 @@ func main() {
 	//wiring
 	userHandler := handler.GetUserHandlerWired()
 
-	router.HandleFunc("/ws", websocketHandler)
-	// router.HandleFunc("/", htmlHandler)
+	groupHandler := handler.NewGroupHandler(group.NewGroupServiceWired())
+
+	router.HandleFunc("/ws", handler.WebsocketHandler)
 	router.HandleFunc("/chat/{userId}", handler.GetUserChats).Methods(http.MethodGet)
+	router.HandleFunc("/chat/group/{groupId}", handler.GetChatsByGroup).Methods(http.MethodGet)
 	router.HandleFunc("/user/{id}", userHandler.GetUserById).Methods(http.MethodGet)
+	router.HandleFunc("/user/username/{username}", userHandler.GetUserByUsername).Methods(http.MethodGet)
+	router.HandleFunc("/group-detail/user/{username}", groupHandler.GetGroupByUser).Methods(http.MethodGet)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowCredentials: true,
+	})
+	handle := c.Handler(router)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // Default port if not specified
 	}
 	log.Println("run on port " + port)
-	http.ListenAndServe(":"+port, router)
+	http.ListenAndServe(":"+port, handle)
 
 }

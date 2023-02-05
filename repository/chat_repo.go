@@ -30,12 +30,20 @@ func (repo *ChatRepository) InsertChat(message string, group entity.Group, user 
 func (repo *ChatRepository) GetUserChats(userId uint) []entity.GroupDetail {
 
 	var groups []entity.GroupDetail
-	var groupId []string
-	repo.db.Select("group_id").Find(&groups, "user_id = ?", userId)
-	repo.db.Table("users").Select("group_id").Where("user_id = ?", userId).Scan(groupId)
+	var groupId []int
+
+	repo.db.Table("group_details").Select("group_id").Where("user_id = ?", userId).Scan(&groupId)
+	repo.db.Preload("User").Find(&groups, "user_id != ? AND group_id IN ?", userId, groupId)
 	log.Println(groupId)
+	log.Println("test")
 
 	// repo.db.Find(&groups, "group_id IN ? AND user_id != ?", groupId, userId)
 
 	return groups
+}
+
+func (repo *ChatRepository) GetChatsByGroup(groupId uint) []entity.Chat {
+	var chats []entity.Chat
+	repo.db.Find(&chats, "group_id = ?", groupId)
+	return chats
 }

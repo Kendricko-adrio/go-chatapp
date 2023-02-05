@@ -28,6 +28,17 @@ func (handler *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) 
 	id, _ := strconv.ParseUint(variable["id"], 0, 8)
 	user := handler.Service.FindById(uint(id))
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+
+}
+
+func (handler *UserHandler) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
+
+	variable := mux.Vars(r)
+	username := variable["username"]
+	user := handler.Service.FindByUsername(username)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 
 }

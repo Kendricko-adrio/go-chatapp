@@ -6,11 +6,15 @@ import (
 )
 
 type UserService struct {
-	Repo repository.IRepository[entity.User, uint]
+	Repo repository.UserRepository
 }
 
 func (user *UserService) FindAll() []entity.User {
 	return nil
+}
+
+func (user *UserService) FindByUsername(username string) entity.User {
+	return user.Repo.FindByUsername(username)
 }
 
 func (service *UserService) FindById(id uint) entity.User {
