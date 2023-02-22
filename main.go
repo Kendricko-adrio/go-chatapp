@@ -58,16 +58,22 @@ func main() {
 
 	groupHandler := handler.NewGroupHandler(group.NewGroupServiceWired())
 
-	router.HandleFunc("/ws", handler.WebsocketHandler)
-	router.HandleFunc("/chat/{userId}", handler.GetUserChats).Methods(http.MethodGet)
-	router.HandleFunc("/chat/group/{groupId}", handler.GetChatsByGroup).Methods(http.MethodGet)
-	router.HandleFunc("/user/{id}", userHandler.GetUserById).Methods(http.MethodGet)
-	router.HandleFunc("/user/username/{username}", userHandler.GetUserByUsername).Methods(http.MethodGet)
-	router.HandleFunc("/group-detail/user/{username}", groupHandler.GetGroupByUser).Methods(http.MethodGet)
+	authRouter := router.PathPrefix("").Subrouter()
 
+	authRouter.Use(handler.AuthMiddleware)
+	authRouter.HandleFunc("/ws", handler.WebsocketHandler)
+	authRouter.HandleFunc("/chat/{userId}", handler.GetUserChats).Methods(http.MethodGet)
+	authRouter.HandleFunc("/chat/group/{groupId}", handler.GetChatsByGroup).Methods(http.MethodGet)
+	authRouter.HandleFunc("/user/{id}", userHandler.GetUserById).Methods(http.MethodGet)
+	authRouter.HandleFunc("/user/username/{username}", userHandler.GetUserByUsername).Methods(http.MethodGet)
+	authRouter.HandleFunc("/group-detail/user/{username}", groupHandler.GetGroupByUser).Methods(http.MethodGet)
+	router.HandleFunc("/login", userHandler.PostUserByUsernameAndPassword).Methods(http.MethodPost)
+	router.HandleFunc("/is-auth", userHandler.PostUserIsAuth).Methods(http.MethodPost)
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
 	})
 	handle := c.Handler(router)
 

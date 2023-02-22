@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"log"
 
 	"github.com/kendricko-adrio/go-ws/entity"
@@ -39,4 +40,15 @@ func (repo *UserRepository) FindByUsername(username string) entity.User {
 	log.Println(user)
 	log.Println(query.RowsAffected)
 	return user
+}
+
+func (repo *UserRepository) FindByUsernameAndPassword(username string, password string) (entity.User, error) {
+
+	var user entity.User
+	query := repo.db.Find(&user, "username = ? AND password = ?", username, password)
+	log.Println("query: ", query.RowsAffected)
+	if query.RowsAffected == 0 {
+		return user, errors.New("User not found")
+	}
+	return user, nil
 }

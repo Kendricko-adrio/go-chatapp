@@ -21,3 +21,7 @@ func (service *UserService) FindById(id uint) entity.User {
 
 	return service.Repo.FindById(id)
 }
+
+func (user *UserService) FindByUsernameAndPassword(username string, password string) (entity.User, error) {
+	return user.Repo.FindByUsernameAndPassword(username, password)
+}
